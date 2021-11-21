@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Fake Shadow</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <style>
+        body {
+            /* To go fullscreen, set margin to 0 and overflow to hidden */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<div id="WebGL-output"> 
+</div>
+
+<script type="text/javascript">
+
+    function init() {
+
+        var stats = initStats();
+
+        // Create a scene that used to hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // Create a camera to defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // Create a renderer and set the size
+        var renderer;
+        var webGLRenderer = new THREE.WebGLRenderer();
+        webGLRenderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+        webGLRenderer.shadowMapEnabled = true;
+
+        renderer = webGLRenderer;
+
+        // Create fake shadows
+        var groundGeom = new THREE.PlaneGeometry(95, 95, 1, 1);
+        var lm = THREE.ImageUtils.loadTexture('../assets/textures/lightmap/lm-1.png');
+        var wood = THREE.ImageUtils.loadTexture('../assets/textures/general/ground.jpg');
+        var groundMaterial = new THREE.MeshBasicMaterial(
+                {
+                    color: 0xffffff,
+                    lightMap: lm,
+                    map: wood
+                });
+        groundGeom.faceVertexUvs[1] = groundGeom.faceVertexUvs[0];
+
+        var groundMesh = new THREE.Mesh(groundGeom, groundMaterial);
+
+        groundMesh.rotation.x = -Math.PI / 2;
+        groundMesh.position.y = 0;
+        scene.add(groundMesh);
+
+        // Add the boxes
+        var cubeGeometry = new THREE.BoxGeometry(12, 12, 12);
+        var cubeGeometry2 = new THREE.BoxGeometry(6, 6, 6);
+
+        var meshMaterial = new THREE.MeshBasicMaterial();
+        meshMaterial.map = THREE.ImageUtils.loadTexture('../assets/textures/general/stone.jpg');
+
+        var cube = new THREE.Mesh(cubeGeometry, meshMaterial);
+        var cube2 = new THREE.Mesh(cubeGeometry2, meshMaterial);
+        cube.position.set(0.5, 6, 0);
+        cube2.position.set(-13.6, 3, 0);
+
+        scene.add(cube);
+        scene.add(cube2);
+
+        // Position and point the camera to the center of the scene based on x, y and z point
+        camera.position.x = -15;
+        camera.position.y = 25;
+        camera.position.z = 45;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        // Add subtle ambient lighting
+        var ambientLight = new THREE.AmbientLight(0x0c0c0c);
+        scene.add(ambientLight);
+
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        render();
+
+        function render() {
+            // Show FPS
+            stats.update();
+
+            // Render using requestAnimationFrame function
+            requestAnimationFrame(render);
+            renderer.render(scene, camera);
+        }
+
+        function initStats() {
+            var stats = new Stats();
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init;
+</script>
+</body>
+</html>
